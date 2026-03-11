@@ -13,8 +13,8 @@
         
         body {
             font-family: 'Arial', 'Helvetica', sans-serif;
-            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
-                        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><defs><linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23667eea;stop-opacity:0.8" /><stop offset="50%" style="stop-color:%23764ba2;stop-opacity:0.6" /><stop offset="100%" style="stop-color:%232c5aa0;stop-opacity:0.8" /></linearGradient></defs><rect width="1200" height="800" fill="url(%23bg)"/><g opacity="0.3"><rect x="100" y="150" width="200" height="300" fill="%23fff" rx="5"/><rect x="350" y="100" width="150" height="400" fill="%23fff" rx="5"/><rect x="550" y="200" width="180" height="250" fill="%23fff" rx="5"/><rect x="780" y="120" width="160" height="350" fill="%23fff" rx="5"/><rect x="980" y="180" width="140" height="280" fill="%23fff" rx="5"/><circle cx="200" cy="600" r="80" fill="%23fff" opacity="0.2"/><circle cx="500" cy="650" r="60" fill="%23fff" opacity="0.2"/><circle cx="800" cy="620" r="70" fill="%23fff" opacity="0.2"/><path d="M50,700 Q200,650 400,680 T800,660 T1150,690" stroke="%23fff" stroke-width="3" fill="none" opacity="0.4"/></g><text x="600" y="50" text-anchor="middle" fill="%23fff" font-size="24" font-weight="bold" opacity="0.6">Delhi • Meerut • Gurgaon</text></svg>');
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
+                        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><defs><linearGradient id="sky" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:%23e3f2fd;stop-opacity:1" /><stop offset="100%" style="stop-color:%23bbdefb;stop-opacity:1" /></linearGradient></defs><rect width="1200" height="800" fill="url(%23sky)"/><g opacity="0.8"><rect x="50" y="300" width="80" height="400" fill="%23424242" rx="2"/><rect x="150" y="250" width="100" height="450" fill="%23616161" rx="2"/><rect x="270" y="200" width="90" height="500" fill="%23424242" rx="2"/><rect x="380" y="180" width="120" height="520" fill="%23757575" rx="2"/><rect x="520" y="220" width="85" height="480" fill="%23424242" rx="2"/><rect x="625" y="160" width="110" height="540" fill="%23616161" rx="2"/><rect x="755" y="190" width="95" height="510" fill="%23424242" rx="2"/><rect x="870" y="140" width="130" height="560" fill="%23757575" rx="2"/><rect x="1020" y="200" width="100" height="500" fill="%23424242" rx="2"/><rect x="1140" y="250" width="80" height="450" fill="%23616161" rx="2"/></g><g opacity="0.6"><circle cx="200" cy="100" r="40" fill="%23fff9c4"/><path d="M180,120 Q200,100 220,120" stroke="%23fff9c4" stroke-width="2" fill="none"/></g><text x="600" y="50" text-anchor="middle" fill="%23333" font-size="20" font-weight="bold" opacity="0.7">Delhi NCR • Gurgaon • Meerut</text><g opacity="0.4"><rect x="100" y="650" width="1000" height="50" fill="%2366bb6a" rx="25"/><rect x="200" y="680" width="800" height="20" fill="%234caf50" rx="10"/></g></svg>');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -210,9 +210,9 @@
                     <label for="city">Market Location</label>
                     <select id="city" name="city" required>
                         <option value="">-- Select Market --</option>
-                        <option value="Delhi" {{ 'selected' if input_data.city == 'Delhi' else '' }}>Delhi NCR (Premium Market)</option>
-                        <option value="Meerut" {{ 'selected' if input_data.city == 'Meerut' else '' }}>Meerut (Emerging Market)</option>
-                        <option value="Gurgaon" {{ 'selected' if input_data.city == 'Gurgaon' else '' }}>Gurgaon (Rapid Metro Corridor)</option>
+                        <option value="Delhi" {{ 'selected' if input_data and input_data.city == 'Delhi' else '' }}>Delhi NCR (Premium Market)</option>
+                        <option value="Meerut" {{ 'selected' if input_data and input_data.city == 'Meerut' else '' }}>Meerut (Emerging Market)</option>
+                        <option value="Gurgaon" {{ 'selected' if input_data and input_data.city == 'Gurgaon' else '' }}>Gurgaon (Rapid Metro Corridor)</option>
                     </select>
                 </div>
             </div>
