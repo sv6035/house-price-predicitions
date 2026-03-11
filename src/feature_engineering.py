@@ -96,6 +96,15 @@ def engineer_features(input_path, output_path):
         if df[col].dtype == 'object':
             df[col] = pd.to_numeric(df[col], errors='coerce')
     
+    # Scale features (excluding target column)
+    target_col = 'price'
+    feature_cols = [col for col in df.columns if col != target_col]
+    
+    if feature_cols:
+        df_scaled, scaler = scale_features(df, feature_cols, target_col)
+        df = df_scaled
+        print(f"Features scaled and scaler saved")
+    
     # Save processed data
     df.to_csv(output_path, index=False)
     print(f"\nEngineered data saved to: {output_path}")
