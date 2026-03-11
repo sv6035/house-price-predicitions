@@ -15,27 +15,29 @@ def create_features(df):
     if 'price' in df.columns and 'area' in df.columns:
         df['price_per_sqft'] = df['price'] / df['area']
     
-    # Example: Age category
+    # Example: Age category - convert directly to numeric
     if 'age' in df.columns:
         df['age_category'] = pd.cut(df['age'], bins=[0, 5, 15, 30, 100], 
-                                     labels=['new', 'recent', 'old', 'very_old'])
+                                   labels=[0, 1, 2, 3])
     
     return df
 
-def encode_categorical(df, categorical_cols):
-    """Encode categorical variables"""
+def encode_categorical(df):
+    """Encode all categorical variables"""
     print("\nEncoding categorical variables...")
     encoders = {}
     
-    for col in categorical_cols:
-        if col in df.columns:
+    # Find all non-numeric columns
+    for col in df.columns:
+        if df[col].dtype == 'object' or df[col].dtype.name == 'category':
             le = LabelEncoder()
             df[col] = le.fit_transform(df[col].astype(str))
             encoders[col] = le
+            print(f"Encoded column: {col}")
     
-    # Save encoders
-    joblib.dump(encoders, 'models/encoders.pkl')
-    print(f"Encoded columns: {categorical_cols}")
+    # Save encoders if any exist
+    if encoders:
+        joblib.dump(encoders, 'models/encoders.pkl')
     
     return df
 
@@ -86,10 +88,13 @@ def engineer_features(input_path, output_path):
     # Create new features
     df = create_features(df)
     
-    # Identify categorical columns
-    categorical_cols = df.select_dtypes(include=['object']).columns.tolist()
-    if categorical_cols:
-        df = encode_categorical(df, categorical_cols)
+    # Encode all categorical variables
+    df = encode_categorical(df)
+    
+    # Ensure all columns are numeric
+    for col in df.columns:
+        if df[col].dtype == 'object':
+            df[col] = pd.to_numeric(df[col], errors='coerce')
     
     # Save processed data
     df.to_csv(output_path, index=False)
