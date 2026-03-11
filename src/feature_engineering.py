@@ -96,6 +96,23 @@ def engineer_features(input_path, output_path):
         if df[col].dtype == 'object':
             df[col] = pd.to_numeric(df[col], errors='coerce')
     
+    # Handle any NaN values that might have been introduced
+    print(f"\nChecking for NaN values...")
+    nan_counts = df.isnull().sum()
+    if nan_counts.sum() > 0:
+        print(f"Found NaN values:\n{nan_counts[nan_counts > 0]}")
+        
+        # Fill NaN values
+        for col in df.columns:
+            if df[col].isnull().sum() > 0:
+                if col != 'price':  # Don't fill target column
+                    df[col].fillna(df[col].median(), inplace=True)
+                    print(f"Filled NaN values in {col} with median")
+        
+        print(f"NaN values after filling: {df.isnull().sum().sum()}")
+    else:
+        print("No NaN values found")
+    
     # Scale features (excluding target column)
     target_col = 'price'
     feature_cols = [col for col in df.columns if col != target_col]
@@ -104,6 +121,14 @@ def engineer_features(input_path, output_path):
         df_scaled, scaler = scale_features(df, feature_cols, target_col)
         df = df_scaled
         print(f"Features scaled and scaler saved")
+    
+    # Final check for NaN values
+    final_nan_count = df.isnull().sum().sum()
+    if final_nan_count > 0:
+        print(f"WARNING: Still have {final_nan_count} NaN values after processing")
+        # Drop any remaining NaN rows
+        df = df.dropna()
+        print(f"Dropped NaN rows. Final shape: {df.shape}")
     
     # Save processed data
     df.to_csv(output_path, index=False)
