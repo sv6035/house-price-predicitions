@@ -21,21 +21,21 @@ def load_artifacts():
     
     try:
         model = joblib.load(MODEL_PATH)
-        print("✓ Model loaded successfully")
+        print("Model loaded successfully")
     except:
-        print("✗ Model not found. Please train the model first.")
+        print("Model not found. Please train the model first.")
     
     try:
         scaler = joblib.load(SCALER_PATH)
-        print("✓ Scaler loaded successfully")
+        print("Scaler loaded successfully")
     except:
-        print("⚠ Scaler not found. Predictions without scaling.")
+        print("Scaler not found. Predictions without scaling.")
     
     try:
         feature_names = joblib.load(FEATURE_NAMES_PATH)
-        print("✓ Feature names loaded successfully")
+        print("Feature names loaded successfully")
     except:
-        print("⚠ Feature names not found.")
+        print("Feature names not found.")
 
 @app.route('/')
 def home():
@@ -49,12 +49,50 @@ def predict():
         # Get input data from form
         data = request.form.to_dict()
         
-        # Convert to float
-        features = {k: float(v) for k, v in data.items()}
+        # Convert to float (except city)
+        features = {}
+        for k, v in data.items():
+            if k == 'city':
+                features[k] = v  # Keep as string
+            else:
+                features[k] = float(v)
+        
+        # Create engineered features
+        features['total_rooms'] = features['bedrooms'] + features['bathrooms']
+        # Don't create price_per_sqft as it's not available during prediction
+        
+        # Create age category (same logic as in feature engineering)
+        age = features['age']
+        if age <= 5:
+            features['age_category'] = 0
+        elif age <= 15:
+            features['age_category'] = 1
+        elif age <= 30:
+            features['age_category'] = 2
+        else:
+            features['age_category'] = 3
+        
+        # Create city tier (Delhi = 2, Gurgaon = 1, Meerut = 0)
+        city_map = {'Delhi': 2, 'Gurgaon': 1, 'Meerut': 0}
+        features['city_tier'] = city_map.get(features.get('city'), 0)
         
         # Create DataFrame with correct feature order
         if feature_names:
-            input_df = pd.DataFrame([features], columns=feature_names)
+            # Ensure we have all required features
+            input_data = []
+            for feature in feature_names:
+                if feature == 'price_per_sqft':
+                    continue  # Skip this feature as it's not available during prediction
+                elif feature == 'city':
+                    continue  # Skip original city column if it exists in feature names
+                elif feature == 'is_premium_city':
+                    input_data.append(features.get('city_tier', 0))  # Use city_tier for legacy feature
+                else:
+                    input_data.append(features[feature])
+            
+            # Filter feature names to exclude problematic features
+            filtered_features = [f for f in feature_names if f not in ['city', 'price_per_sqft']]
+            input_df = pd.DataFrame([input_data], columns=filtered_features)
         else:
             input_df = pd.DataFrame([features])
         
@@ -68,8 +106,8 @@ def predict():
         prediction = model.predict(input_scaled)[0]
         
         return render_template('index.html', 
-                             prediction=f"${prediction:,.2f}",
-                             input_data=features)
+                             prediction=f"Rs {prediction:,.0f}",
+                             input_data=data)  # Use original form data
     
     except Exception as e:
         return render_template('index.html', 
@@ -81,9 +119,30 @@ def api_predict():
     try:
         data = request.get_json()
         
+        # Create engineered features
+        data['total_rooms'] = data['bedrooms'] + data['bathrooms']
+        data['price_per_sqft'] = 0  # Placeholder
+        
+        # Create age category
+        age = data['age']
+        if age <= 5:
+            data['age_category'] = 0
+        elif age <= 15:
+            data['age_category'] = 1
+        elif age <= 30:
+            data['age_category'] = 2
+        else:
+            data['age_category'] = 3
+        
         # Create DataFrame
         if feature_names:
-            input_df = pd.DataFrame([data], columns=feature_names)
+            input_data = []
+            for feature in feature_names:
+                if feature == 'price_per_sqft':
+                    input_data.append(0)
+                else:
+                    input_data.append(data[feature])
+            input_df = pd.DataFrame([input_data], columns=feature_names)
         else:
             input_df = pd.DataFrame([data])
         
@@ -98,7 +157,7 @@ def api_predict():
         return jsonify({
             'success': True,
             'prediction': float(prediction),
-            'formatted': f"${prediction:,.2f}"
+            'formatted': f"Rs {prediction:,.0f}"
         })
     
     except Exception as e:

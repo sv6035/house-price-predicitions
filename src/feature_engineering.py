@@ -7,18 +7,21 @@ def create_features(df):
     """Create new features from existing ones"""
     print("\nCreating new features...")
     
-    # Example: Total rooms
+    # Total rooms
     if 'bedrooms' in df.columns and 'bathrooms' in df.columns:
         df['total_rooms'] = df['bedrooms'] + df['bathrooms']
     
-    # Example: Price per square foot (if price exists)
-    if 'price' in df.columns and 'area' in df.columns:
-        df['price_per_sqft'] = df['price'] / df['area']
+    # Don't create price_per_sqft as it's not available during prediction
+    # This would cause data leakage since we need price to calculate it
     
-    # Example: Age category - convert directly to numeric
+    # Age category - convert directly to numeric
     if 'age' in df.columns:
         df['age_category'] = pd.cut(df['age'], bins=[0, 5, 15, 30, 100], 
                                    labels=[0, 1, 2, 3])
+    
+    # City premium indicator (Delhi = 2, Gurgaon = 1, Others = 0)
+    if 'city' in df.columns:
+        df['city_tier'] = df['city'].map({'Delhi': 2, 'Gurgaon': 1, 'Meerut': 0}).fillna(0)
     
     return df
 
@@ -87,6 +90,11 @@ def engineer_features(input_path, output_path):
     
     # Create new features
     df = create_features(df)
+    
+    # Remove original city column after creating is_premium_city
+    if 'city' in df.columns:
+        df = df.drop('city', axis=1)
+        print("Removed original 'city' column after feature engineering")
     
     # Encode all categorical variables
     df = encode_categorical(df)

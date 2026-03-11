@@ -10,8 +10,49 @@ def load_and_split_data(filepath, target_col='price', test_size=0.2):
     """Load data and split into train/test sets"""
     df = pd.read_csv(filepath)
     
+    # Check for NaN values and handle them
+    print(f"\nChecking for NaN values in loaded data...")
+    nan_counts = df.isnull().sum()
+    if nan_counts.sum() > 0:
+        print(f"Found NaN values:\n{nan_counts[nan_counts > 0]}")
+        
+        # Fill NaN values or drop rows
+        for col in df.columns:
+            if df[col].isnull().sum() > 0:
+                if col == target_col:
+                    # Drop rows with NaN target values
+                    df = df.dropna(subset=[col])
+                    print(f"Dropped {nan_counts[col]} rows with NaN in target column '{col}'")
+                else:
+                    # Fill feature NaN values with median
+                    df[col].fillna(df[col].median(), inplace=True)
+                    print(f"Filled {nan_counts[col]} NaN values in '{col}' with median")
+        
+        print(f"Final NaN count: {df.isnull().sum().sum()}")
+    else:
+        print("No NaN values found")
+    
+    # Ensure all columns are numeric
+    for col in df.columns:
+        if df[col].dtype == 'object':
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+            # Fill any new NaN values created by conversion
+            if df[col].isnull().sum() > 0:
+                df[col].fillna(df[col].median(), inplace=True)
+    
     X = df.drop(columns=[target_col])
     y = df[target_col]
+    
+    # Final safety check
+    if X.isnull().sum().sum() > 0 or y.isnull().sum() > 0:
+        print("WARNING: Still have NaN values after cleaning!")
+        print(f"X NaN count: {X.isnull().sum().sum()}")
+        print(f"y NaN count: {y.isnull().sum()}")
+        # Drop any remaining NaN rows
+        mask = ~(X.isnull().any(axis=1) | y.isnull())
+        X = X[mask]
+        y = y[mask]
+        print(f"Dropped rows with NaN. Final shape: X={X.shape}, y={y.shape}")
     
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=test_size, random_state=42
@@ -24,6 +65,17 @@ def load_and_split_data(filepath, target_col='price', test_size=0.2):
 
 def train_models(X_train, y_train):
     """Train multiple regression models"""
+    # Final safety check for NaN values
+    print(f"\nFinal NaN check before training:")
+    print(f"X_train NaN count: {X_train.isnull().sum().sum()}")
+    print(f"y_train NaN count: {y_train.isnull().sum()}")
+    
+    if X_train.isnull().sum().sum() > 0 or y_train.isnull().sum() > 0:
+        print("ERROR: NaN values detected before training!")
+        print("X_train NaN by column:")
+        print(X_train.isnull().sum()[X_train.isnull().sum() > 0])
+        raise ValueError("Cannot proceed with NaN values in training data")
+    
     models = {
         'Linear Regression': LinearRegression(),
         'Random Forest': RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=-1),
