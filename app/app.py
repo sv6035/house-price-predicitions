@@ -7,9 +7,10 @@ import os
 app = Flask(__name__)
 
 # Load model and preprocessing objects
-MODEL_PATH = '../models/house_price_model.pkl'
-SCALER_PATH = '../models/scaler.pkl'
-FEATURE_NAMES_PATH = '../models/feature_names.pkl'
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MODEL_PATH = os.path.join(BASE_DIR, 'models', 'house_price_model.pkl')
+SCALER_PATH = os.path.join(BASE_DIR, 'models', 'scaler.pkl')
+FEATURE_NAMES_PATH = os.path.join(BASE_DIR, 'models', 'feature_names.pkl')
 
 model = None
 scaler = None
@@ -176,4 +177,4 @@ def health():
 
 if __name__ == '__main__':
     load_artifacts()
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='127.0.0.1', port=5000, debug=True)
